@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <semaphore.h>
-#include "eventbuf.h"
+#include "eventbuf/eventbuf.h"
 
 struct eventbuf *eb;
 int event_count;
@@ -36,7 +36,6 @@ int calc_event_number(int thread_id, int it_num) {
 void *producer_run(void * thread_id) {
     int *p = thread_id;
     for(int i = 0; i < event_count; i++) {
-        int event_id = *p * 100 + i;
         sem_wait(spaces);
         sem_wait(mutex);
         eventbuf_add(eb, calc_event_number(*p, i));
@@ -55,7 +54,7 @@ void *consumer_run(void * thread_id) {
         sem_wait(mutex);
         if(eventbuf_empty(eb)){
             sem_post(mutex);
-            printf("C%d: exiting\n", *pid_t);
+            printf("C%d: exiting\n", *p);
             return NULL;
         }
         int event_num = eventbuf_get(eb);
@@ -69,7 +68,7 @@ void *consumer_run(void * thread_id) {
 int main(int argc, char *argv[])
 {
     // Parse command line
-    if (argc != 4) {
+    if (argc != 5) {
         fprintf(stderr, "usage: pcseml producer_count consumer_count event_count queue_size\n");
         exit(1);
     }
